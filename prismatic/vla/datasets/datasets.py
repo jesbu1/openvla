@@ -64,26 +64,36 @@ class RLDSBatchTransform:
                 ]
                 img = [val for tup in zip(img, wrist_img) for val in tup]
 
+        
+        conversation = []
+
+        # if there is no action horizon, remove it here.
+        
+        if self.action_tokenizer.required_future_horizon == 0:
+            action = action[-1]
+        else:
+            # get the last FH + 1 actions (current action + future ones) if required
+            action = action[-self.action_tokenizer.required_future_horizon - 1:]
+
         tokenized_action = self.action_tokenizer(action)
         raw_action_tokens = self.base_tokenizer(tokenized_action)["input_ids"]
 
-        # Construct Chat-based Prompt =>> Input is default query + language instruction, output are the action tokens
-        prompt_builder = self.prompt_builder_fn("openvla")
-        conversation = [
+        conversation.extend([
             {"from": "human", "value": f"What action should the robot take to {lang}?"},
-            {"from": "gpt", "value": tokenized_action},
-        ]
+            {"from": "gpt", "value": tokenized_action}, 
+        ])
+        num_answer_tokens = len(raw_action_tokens)
+
+        # Construct Chat-based Prompt
+        prompt_builder = self.prompt_builder_fn("openvla")
         for turn in conversation:
             prompt_builder.add_turn(turn["from"], turn["value"])
 
         # Tokenize (w/ `base_tokenizer`)
         input_ids = self.base_tokenizer(prompt_builder.get_prompt(), add_special_tokens=True).input_ids
         labels = list(input_ids)
-        # print("----------------------")
-        # print(prompt_builder.get_prompt())
 
         # Tensorize =>> Run Image Transform to get `pixel_values` =>> Return
-        #   =>> IMPORTANT :: IF WE'RE USING HF LLM.forward(..., labels=labels), SHIFTING HAPPENS _INSIDE_ MODEL!
         input_ids, labels = torch.tensor(input_ids), torch.tensor(labels)
         pixel_values = self.image_transform(img)
 
@@ -93,8 +103,7 @@ class RLDSBatchTransform:
             # Qwen has <|im_end|><|endoftext|> for example
             num_end_tokens = 2
 
-        # [CRITICAL] We do not want to take the loss for anything but the predicted action tokens!
-        labels[: -(len(raw_action_tokens) + num_end_tokens)] = IGNORE_INDEX
+        labels[: -(num_answer_tokens + num_end_tokens)] = IGNORE_INDEX
         if not self.predict_stop_token:
             labels[-num_end_tokens:] = IGNORE_INDEX
 
