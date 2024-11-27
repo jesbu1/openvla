@@ -63,7 +63,7 @@ class ActionTokenizer:
         discretized_action = np.digitize(action, self.bins)
 
         # Handle single element vs. batch
-        if len(discretized_action.shape) == 1:
+        if len(discretized_action.shape) <= 1:
             return self.tokenizer.decode(list(self.tokenizer_len - discretized_action))
         else:
             return self.tokenizer.batch_decode((self.tokenizer_len - discretized_action).tolist())

@@ -43,13 +43,6 @@ class RLDSBatchTransform:
         dataset_name, action = rlds_batch["dataset_name"], rlds_batch["action"]
         lang = rlds_batch["task"]["language_instruction"].decode().lower()
 
-        # if there is no action horizon, remove it here.
-        if self.action_tokenizer.required_future_horizon == 0:
-            action = action[-1]
-        else:
-            # get the last FH + 1 actions (current action + future ones) if required
-            action = action[-self.action_tokenizer.required_future_horizon - 1 :]
-
         # either a single or multi image, depending on image_window_size
         if self.image_window_size == 1:
             img = Image.fromarray(rlds_batch["observation"]["image_primary"][0])
@@ -64,24 +57,25 @@ class RLDSBatchTransform:
                 ]
                 img = [val for tup in zip(img, wrist_img) for val in tup]
 
-        
         conversation = []
 
         # if there is no action horizon, remove it here.
-        
+
         if self.action_tokenizer.required_future_horizon == 0:
             action = action[-1]
         else:
             # get the last FH + 1 actions (current action + future ones) if required
-            action = action[-self.action_tokenizer.required_future_horizon - 1:]
+            action = action[-self.action_tokenizer.required_future_horizon - 1 :]
 
         tokenized_action = self.action_tokenizer(action)
         raw_action_tokens = self.base_tokenizer(tokenized_action)["input_ids"]
 
-        conversation.extend([
-            {"from": "human", "value": f"What action should the robot take to {lang}?"},
-            {"from": "gpt", "value": tokenized_action}, 
-        ])
+        conversation.extend(
+            [
+                {"from": "human", "value": f"What action should the robot take to {lang}?"},
+                {"from": "gpt", "value": tokenized_action},
+            ]
+        )
         num_answer_tokens = len(raw_action_tokens)
 
         # Construct Chat-based Prompt
