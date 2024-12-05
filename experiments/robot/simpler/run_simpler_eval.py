@@ -6,10 +6,10 @@ Runs a model in a LIBERO simulation environment.
 Usage:
     # OpenVLA:
     # IMPORTANT: Set `center_crop=True` if model is fine-tuned with augmentations
-    python experiments/robot/libero/run_libero_eval.py \
+    python experiments/robot/simpler/run_simpler_eval.py \
         --model_family openvla \
         --pretrained_checkpoint <CHECKPOINT_PATH> \
-        --task_suite_name [ libero_spatial | libero_object | libero_goal | libero_10 | libero_90 ] \
+        --task_suite_name [ simpler_widowx ... ] \
         --center_crop [ True | False ] \
         --run_id_note <OPTIONAL TAG TO INSERT INTO RUN ID FOR LOGGING> \
         --use_wandb [ True | False ] \
@@ -282,8 +282,8 @@ def eval_simpler(cfg: GenerateConfig) -> None:
                 replay_images, total_episodes, success=done, task_description=task_description, log_file=log_file
             )
 
-            # Save the videos to wandb
-            if cfg.use_wandb and (task_successes < 10 or task_episodes - task_successes < 10):
+            # Save at most 5 successes and at most 5 failures
+            if cfg.use_wandb and ((done and task_successes < 5) or (not done and task_episodes - task_successes < 5)):
                 group = "success" if done else "failure"
                 idx = task_successes if done else task_episodes - task_successes
                 wandb.log(
