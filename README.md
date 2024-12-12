@@ -326,6 +326,8 @@ If you run into any issues, please visit the [VLA Troubleshooting](#vla-troubles
 
 ### Converting Prismatic Models to Hugging Face
 
+**NOTE: Converting and deploying MiniVLA models and VQ / multi image is not supported yet!**
+
 If you have used the Prismatic VLMs codebase to train your model (e.g., if you did full fine-tuning of OpenVLA on a
 new dataset), you will need to convert the final checkpoint to a version that is compatible with Hugging Face
 `transformers` AutoClasses. We discuss how to do so in this section.
@@ -444,7 +446,7 @@ AttributeError: 'DLataset' object has no attribute 'traj_map'. Did you mean: 'fl
 
 ### Base Prismatic VLM for Qwen2.5
 
-We have included a variant Prismatic VLM trained one the [Qwen2.5 0.5B backbone here](TODO).
+We have included a variant Prismatic VLM trained one the [Qwen2.5 0.5B backbone here](https://huggingface.co/Stanford-ILIAD/prism-qwen25-extra-dinosiglip-224px-0_5b).
 The configurations for training the Prismatic VLM can be found under `prismatic/conf/models.py` with `Qwen2.5` in the name.
 
 The recommended Base VLM config to use for pretraining is `--model.type prism-qwen25-extra-dinosiglip-224px+0_5b`.
@@ -457,6 +459,9 @@ Here's an example of how to train, following the prismatic guidelines with 8 GPU
 torchrun --standalone --nnodes 1 --nproc-per-node 8 scripts/pretrain.py \
   --model.type "prism-qwen25-extra-dinosiglip-224px+0_5b" \
 ```
+
+You can find this model [here on hugging face](https://huggingface.co/Stanford-ILIAD/prism-qwen25-extra-dinosiglip-224px-0_5b)
+
 
 ### Training MiniVLA on your dataset
 
@@ -476,7 +481,7 @@ torchrun --standalone --nnodes 1 --nproc-per-node 8 vla-scripts/train.py \
   --wandb_entity "<ENTITY>"
 ```
 
-We have [LIBERO pretrained models](TODO) and [Bridge pretrained models](TODO).
+We have [LIBERO pretrained models here](https://huggingface.co/collections/Stanford-ILIAD/minivla-675a2a9aca369ff3a6c04e33)
 
 ---
 
@@ -502,7 +507,7 @@ python vla-scripts/pretrain_vq.py --data_dir <WHERE IS BRIDGE DATA> \\
 
 By default, this will create a directory under the root called `vq/` for each of the pretrained checkpoint.
 
-We have several existing VQs that you can use, [LIBERO VQ](TODO) and [Bridge VQ](TODO). Download them into this vq/ folder before running VLA training or inference.
+We have several existing VQs that you can use, [LIBERO VQ](https://huggingface.co/Stanford-ILIAD/minivla-vq-libero90-prismatic) and [Bridge VQ](https://huggingface.co/Stanford-ILIAD/minivla-vq-bridge-prismatic). Download them into this vq/ folder before running VLA training or inference.
 
 ### Training and Inference with VQ
 
