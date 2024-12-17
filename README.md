@@ -507,7 +507,7 @@ python vla-scripts/pretrain_vq.py --data_dir <WHERE IS BRIDGE DATA> \\
 
 By default, this will create a directory under the root called `vq/` for each of the pretrained checkpoint.
 
-We have several existing VQs that you can use, [LIBERO VQ](https://huggingface.co/Stanford-ILIAD/minivla-vq-libero90-prismatic) and [Bridge VQ](https://huggingface.co/Stanford-ILIAD/minivla-vq-bridge-prismatic). Download them into this vq/ folder before running VLA training or inference.
+We have several existing VQs that you can use, [LIBERO VQ](https://huggingface.co/Stanford-ILIAD/pretrain_vq/tree/main/pretrain_vq%2Bmx-libero_90%2Bfach-7%2Bng-7%2Bnemb-128%2Bnlatent-512) and [Bridge VQ](https://huggingface.co/Stanford-ILIAD/pretrain_vq/tree/main/pretrain_modvq%2Bmx-bridge_dataset%2Bfach-7%2Bng-7%2Bnemb-256%2Bnlatent-512). Download them into this vq/ folder before running VLA training or inference.
 
 ### Training and Inference with VQ
 
