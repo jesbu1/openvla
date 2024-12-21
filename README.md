@@ -1,3 +1,8 @@
+## Additional Instructions
+Make sure to modifiy `datasets.py` and `configs.py` to add the custom dataset.
+
+`NCCL_P2P_LEVEL=NVL torchrun --standalone --nnodes=1 --nproc-per-node $NGPUS vla-scripts/finetune_rlbench.py ARGS` # NVL needed for DDP to work properly on certain machines, no idea why.
+
 # OpenVLA: An Open-Source Vision-Language-Action Model
 
 [![arXiv](https://img.shields.io/badge/arXiv-2406.09246-df2a2a.svg?style=for-the-badge)](https://arxiv.org/abs/2406.09246)
