@@ -78,7 +78,7 @@ class FinetuneConfig:
     vla_path: str = "openvla/openvla-7b"                            # Path to OpenVLA model (on HuggingFace Hub)
 
     # Directory Paths
-    data_root_dir: Path = Path(f"{os.environ["HOME"]}/tensorflow_datasets/")        # Path to TF datasets
+    data_root_dir: Path = Path(f"{os.environ['HOME']}/tensorflow_datasets/")        # Path to TF datasets
     dataset_name: str = "rl_bench_v1"                                # Name of fine-tuning dataset (e.g., `droid_wipe`)
     run_root_dir: Path = Path("runs")                               # Path to directory to store logs & checkpoints
     adapter_tmp_dir: Path = Path("adapter-tmp")                     # Temporary directory for LoRA weights before fusing
