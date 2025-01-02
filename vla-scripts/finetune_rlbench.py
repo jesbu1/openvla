@@ -42,7 +42,7 @@ import wandb
 from prismatic.models.backbones.llm.prompting import PurePromptBuilder, VicunaV15ChatPromptBuilder
 from prismatic.util.data_utils import PaddedCollatorForActionPrediction
 from prismatic.vla.action_tokenizer import ActionTokenizer
-from prismatic.vla.datasets import RLDSBatchTransform, RLDSDataset
+from prismatic.vla.datasets import RLDSBatchTransform, RLDSDataset, CombinedRLDSDataset
 from prismatic.vla.datasets.rlds.utils.data_utils import save_dataset_statistics
 
 from prismatic.extern.hf.configuration_prismatic import OpenVLAConfig
@@ -79,7 +79,7 @@ class FinetuneConfig:
 
     # Directory Paths
     data_root_dir: Path = Path(f"{os.environ["HOME"]}/tensorflow_datasets/")        # Path to TF datasets
-    dataset_name: str = "rl_bench_v1"                                # Name of fine-tuning dataset (e.g., `droid_wipe`)
+    dataset_name: str = "rl_bench"                                # Name of fine-tuning dataset (e.g., `droid_wipe`)
     run_root_dir: Path = Path("runs")                               # Path to directory to store logs & checkpoints
     adapter_tmp_dir: Path = Path("adapter-tmp")                     # Temporary directory for LoRA weights before fusing
 
@@ -212,7 +212,7 @@ def finetune(cfg: FinetuneConfig) -> None:
         image_transform=processor.image_processor.apply_transform,
         prompt_builder_fn=PurePromptBuilder if "v01" not in cfg.vla_path else VicunaV15ChatPromptBuilder,
     )
-    vla_dataset = RLDSDataset(
+    vla_dataset = CombinedRLDSDataset(
         cfg.data_root_dir,
         cfg.dataset_name,
         batch_transform,
