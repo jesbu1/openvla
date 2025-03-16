@@ -16,7 +16,7 @@ python experiments/robot/libero/regenerate_libero_dataset.py --libero_task_suite
 ```
 
 Then, to generate the LIBERO RLDS dataset, run the following command:
-```
+```bash
 git clone git@github.com:jesbu1/rlbench_rlds_convertor.git
 cd rlbench_rlds_convertor
 conda env create -f environment_ubuntu.yml
@@ -28,6 +28,11 @@ tfds build --overwrite  # single-threaded
 # Rename the dataset to `libero_90_rlds`
 mv /home/jeszhang/tensorflow_datasets/liber_o90 /home/jeszhang/LIBERO/libero/datasets/libero_90_rlds
 ```
+
+Then, to finetune the LIBERO_90 dataset, run the following command:
+```bash
+NCCL_P2P_LEVEL=NVL torchrun --standalone --nnodes=1 --nproc-per-node 1 vla-scripts/finetune_libero_90.py
+``` 
 
 Done!
 
