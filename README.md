@@ -15,6 +15,22 @@ Then, run the following command to generate the LIBERO_90 dataset:
 python experiments/robot/libero/regenerate_libero_dataset.py --libero_task_suite libero_90 --libero_raw_data_dir /home/jeszhang/LIBERO/libero/datasets/libero_90/ --libero_target_dir /home/jeszhang/LIBERO/libero/datasets/libero_90_openvla_processed
 ```
 
+Then, to generate the LIBERO RLDS dataset, run the following command:
+```
+git clone git@github.com:jesbu1/rlbench_rlds_convertor.git
+cd rlbench_rlds_convertor
+conda env create -f environment_ubuntu.yml
+conda activate rlds_env
+export CUDA_VISIBLE_DEVICES= # disables GPU usage
+cd LIBERO_90
+tfds build --overwrite  # single-threaded
+
+# Rename the dataset to `libero_90_rlds`
+mv /home/jeszhang/tensorflow_datasets/liber_o90 /home/jeszhang/LIBERO/libero/datasets/libero_90_rlds
+```
+
+Done!
+
 ## Additional Instructions
 Make sure to modifiy `datasets.py` and `configs.py` to add the custom dataset.
 
