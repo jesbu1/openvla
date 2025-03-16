@@ -79,7 +79,7 @@ class FinetuneConfig:
 
     # Directory Paths
     data_root_dir: Path = Path(f"{os.environ['HOME']}/tensorflow_datasets/")        # Path to TF datasets
-    dataset_name: str = "rl_bench"                                # Name of fine-tuning dataset (e.g., `droid_wipe`)
+    dataset_name: str = "libero_90_rlds_original"                   # Name of fine-tuning dataset (e.g., `droid_wipe`)
     run_root_dir: Path = Path("runs")                               # Path to directory to store logs & checkpoints
     adapter_tmp_dir: Path = Path("adapter-tmp")                     # Temporary directory for LoRA weights before fusing
 
@@ -105,7 +105,7 @@ class FinetuneConfig:
     # Tracking Parameters
     wandb_project: str = "openvla"                                  # Name of W&B project to log to (use default!)
     wandb_entity: str = "clvr"                                      # Name of entity to log under
-    run_id_note: Optional[str] = "RLBench finetuning"               # Extra note for logging, Weights & Biases
+    run_id_note: Optional[str] = "LIBERO 90 finetuning"               # Extra note for logging, Weights & Biases
 
     # fmt: on
 
