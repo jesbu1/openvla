@@ -1,3 +1,20 @@
+## LIBERO Dataset Generation instructions
+Install OpenVLA as per the instructions below.
+
+Then,
+
+```bash
+pip install -r experiments/robot/libero/libero_requirements.txt
+pip install -e /home/jeszhang/LIBERO
+pip install h5py
+```
+
+Then, run the following command to generate the LIBERO_90 dataset:
+
+```bash
+python experiments/robot/libero/regenerate_libero_dataset.py --libero_task_suite libero_90 --libero_raw_data_dir /home/jeszhang/LIBERO/libero/datasets/libero_90/ --libero_target_dir /home/jeszhang/LIBERO/libero/datasets/libero_90_openvla_processed
+```
+
 ## Additional Instructions
 Make sure to modifiy `datasets.py` and `configs.py` to add the custom dataset.
 
