@@ -5,14 +5,31 @@ Then,
 
 ```bash
 pip install -r experiments/robot/libero/libero_requirements.txt
-pip install -e /home/jeszhang/LIBERO
+pip install -e /home/$USER/LIBERO
 pip install h5py
+```
+
+To download the dataset, run the following command:
+```bash
+git clone git@hf.co:/datasets/jesbu1/libero_90_rlds
+cd libero_90_rlds
+git lfs fetch --all
+```
+Then, move it to the tensorflow_datasets folder:
+```bash
+mv libero_90_rlds /home/$USER/tensorflow_datasets/
+cd ..
+```
+
+If you don't want to download the dataset yourself, you can generate the LIBERO_90 dataset yourself. In order to do this, run the following command:
+```bash
+python experiments/robot/libero/regenerate_libero_dataset.py --libero_task_suite libero_90 --libero_raw_data_dir /home/$USER/LIBERO/libero/datasets/libero_90/ --libero_target_dir /home/$USER/LIBERO/libero/datasets/libero_90_openvla_processed
 ```
 
 Then, run the following command to generate the LIBERO_90 dataset:
 
 ```bash
-python experiments/robot/libero/regenerate_libero_dataset.py --libero_task_suite libero_90 --libero_raw_data_dir /home/jeszhang/LIBERO/libero/datasets/libero_90/ --libero_target_dir /home/jeszhang/LIBERO/libero/datasets/libero_90_openvla_processed
+python experiments/robot/libero/regenerate_libero_dataset.py --libero_task_suite libero_90 --libero_raw_data_dir /home/$USER/LIBERO/libero/datasets/libero_90/ --libero_target_dir /home/$USER/LIBERO/libero/datasets/libero_90_openvla_processed
 ```
 
 Then, to generate the LIBERO RLDS dataset, run the following command:
@@ -26,10 +43,10 @@ cd LIBERO_90
 tfds build --overwrite  # single-threaded
 
 # Rename the dataset to `libero_90_rlds`
-mv /home/jeszhang/tensorflow_datasets/liber_o90 /home/jeszhang/LIBERO/libero/datasets/libero_90_rlds
+mv /home/$USER/tensorflow_datasets/liber_o90 /home/$USER/LIBERO/libero/datasets/libero_90_rlds
 ```
 
-Then, to finetune the LIBERO_90 dataset, run the following command:
+Finally, to finetune on the LIBERO_90 dataset, run the following command:
 ```bash
 NCCL_P2P_LEVEL=NVL torchrun --standalone --nnodes=1 --nproc-per-node 1 vla-scripts/finetune_libero_90.py
 ``` 

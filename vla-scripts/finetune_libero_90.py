@@ -79,7 +79,7 @@ class FinetuneConfig:
 
     # Directory Paths
     data_root_dir: Path = Path(f"{os.environ['HOME']}/tensorflow_datasets/")        # Path to TF datasets
-    dataset_name: str = "libero_90_rlds_original"                   # Name of fine-tuning dataset (e.g., `droid_wipe`)
+    dataset_name: str = "libero_90_openvla_processed"                   # Name of fine-tuning dataset (e.g., `droid_wipe`)
     run_root_dir: Path = Path("runs")                               # Path to directory to store logs & checkpoints
     adapter_tmp_dir: Path = Path("adapter-tmp")                     # Temporary directory for LoRA weights before fusing
 
