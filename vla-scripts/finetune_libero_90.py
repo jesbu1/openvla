@@ -80,7 +80,7 @@ class FinetuneConfig:
     data_root_dir: Path = Path("datasets")                          # Path to dataset directory
     dataset_name: str = "libero_90_rlds"                           # Name of dataset to fine-tune on
     run_root_dir: Path = Path("runs")                              # Path to directory to store logs & checkpoints
-    adapter_tmp_dir: Path = Path("adapter_tmp")                     # Path to temporary directory to save adapter weights
+    adapter_tmp_dir: Path = Path("adapter-tmp")                     # Path to temporary directory to save adapter weights
 
     # Resume Run Parameters
     pretrained_checkpoint: Optional[Path] = None                    # Path to checkpoint to resume from
