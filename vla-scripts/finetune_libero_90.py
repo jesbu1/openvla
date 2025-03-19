@@ -191,6 +191,12 @@ def finetune(cfg: FinetuneConfig) -> None:
             # For full fine-tuning, load directly from the checkpoint
             vla = vla.from_pretrained(cfg.pretrained_checkpoint)
 
+    # Device Placement =>> note that BitsAndBytes automatically handles for quantized training
+    if cfg.use_quantization:
+        vla = prepare_model_for_kbit_training(vla)
+    else:
+        vla = vla.to(device_id)
+
     # If using LoRA, wrap the model with PeftModel
     if cfg.use_lora and not cfg.is_resume:
         print("Initializing LoRA adapter...")
