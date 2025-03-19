@@ -169,36 +169,31 @@ def finetune(cfg: FinetuneConfig) -> None:
 
     # Load OpenVLA Processor and Model using HF AutoClasses
     processor = AutoProcessor.from_pretrained(cfg.vla_path, trust_remote_code=True)
+    vla = AutoModelForVision2Seq.from_pretrained(
+        cfg.vla_path,
+        torch_dtype=torch.bfloat16,
+        low_cpu_mem_usage=True,
+        trust_remote_code=True,
+        quantization_config=quantization_config,
+    )
 
-    # Handle checkpoint loading for resume training
+    # If resuming training, load the checkpoint
     if cfg.is_resume and cfg.pretrained_checkpoint is not None:
         print(f"Resuming training from checkpoint: {cfg.pretrained_checkpoint}")
-        # Load the base model first
-        base_vla = AutoModelForVision2Seq.from_pretrained(
-            cfg.vla_path,
-            torch_dtype=torch.bfloat16,
-            low_cpu_mem_usage=True,
-            trust_remote_code=True,
-        )
-        # Load the checkpoint
-        vla = PeftModel.from_pretrained(base_vla, cfg.pretrained_checkpoint)
-    else:
-        vla = AutoModelForVision2Seq.from_pretrained(
-            cfg.vla_path,
-            torch_dtype=torch.bfloat16,
-            quantization_config=quantization_config,
-            low_cpu_mem_usage=True,
-            trust_remote_code=True,
-        )
+        if cfg.use_lora:
+            # For LoRA, we need to load from adapter-tmp directory
+            adapter_dir = cfg.adapter_tmp_dir / cfg.pretrained_checkpoint.name
+            if not adapter_dir.exists():
+                raise ValueError(f"Could not find adapter directory at {adapter_dir}")
+            print(f"Loading LoRA adapter from: {adapter_dir}")
+            vla = PeftModel.from_pretrained(vla, adapter_dir)
+        else:
+            # For full fine-tuning, load directly from the checkpoint
+            vla = vla.from_pretrained(cfg.pretrained_checkpoint)
 
-    # Device Placement =>> note that BitsAndBytes automatically handles for quantized training
-    if cfg.use_quantization:
-        vla = prepare_model_for_kbit_training(vla)
-    else:
-        vla = vla.to(device_id)
-
-    # [LoRA] Wrap Model w/ PEFT `LoraConfig` =>> by default we set `target_modules=all-linear`
-    if cfg.use_lora:
+    # If using LoRA, wrap the model with PeftModel
+    if cfg.use_lora and not cfg.is_resume:
+        print("Initializing LoRA adapter...")
         lora_config = LoraConfig(
             r=cfg.lora_rank,
             lora_alpha=min(cfg.lora_rank, 16),
