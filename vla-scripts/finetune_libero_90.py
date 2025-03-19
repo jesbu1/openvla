@@ -24,6 +24,7 @@ from collections import deque
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
+import re
 
 import draccus
 import torch
@@ -76,18 +77,15 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 class FinetuneConfig:
     # fmt: off
     vla_path: str = "openvla/openvla-7b"                            # Path to OpenVLA model (on HuggingFace Hub)
+    data_root_dir: Path = Path("datasets")                          # Path to dataset directory
+    dataset_name: str = "libero_90_rlds"                           # Name of dataset to fine-tune on
+    run_root_dir: Path = Path("runs")                              # Path to directory to store logs & checkpoints
+    adapter_tmp_dir: Path = Path("adapter_tmp")                     # Path to temporary directory to save adapter weights
 
-    # Directory Paths
-    data_root_dir: Path = Path(f"{os.environ['HOME']}/tensorflow_datasets/")        # Path to TF datasets
-    dataset_name: str = "libero_90_openvla_processed"                   # Name of fine-tuning dataset (e.g., `droid_wipe`)
-    run_root_dir: Path = Path("runs")                               # Path to directory to store logs & checkpoints
-    adapter_tmp_dir: Path = Path("adapter-tmp")                     # Temporary directory for LoRA weights before fusing
-
-    # Resume Training Parameters
+    # Resume Run Parameters
     pretrained_checkpoint: Optional[Path] = None                    # Path to checkpoint to resume from
-    is_resume: bool = False                                         # Whether we are continuing a prior training run
-    resume_step: Optional[int] = None                               # Global step to resume from
-    resume_epoch: Optional[int] = None                              # Epoch to resume from
+    is_resume: bool = False                                         # Whether to continue a prior training run
+    resume_step: Optional[int] = None                               # Global step to resume from (auto-detected if not specified)
 
     # Fine-tuning Parameters
     batch_size: int = 6                                             # Fine-tuning batch size
@@ -119,6 +117,16 @@ class FinetuneConfig:
 @draccus.wrap()
 def finetune(cfg: FinetuneConfig) -> None:
     print(f"Fine-tuning OpenVLA Model `{cfg.vla_path}` on `{cfg.dataset_name}`")
+
+    # Auto-detect resume step from checkpoint if not specified
+    if cfg.is_resume and cfg.pretrained_checkpoint is not None and cfg.resume_step is None:
+        # Extract step from checkpoint filename
+        step_match = re.search(r"step-(\d+)", cfg.pretrained_checkpoint.name)
+        if step_match:
+            cfg.resume_step = int(step_match.group(1))
+            print(f"Auto-detected resume step from checkpoint: {cfg.resume_step}")
+        else:
+            print("Warning: Could not auto-detect resume step from checkpoint filename")
 
     # [Validate] Ensure GPU Available & Set Device / Distributed Context
     assert torch.cuda.is_available(), "Fine-tuning assumes at least one GPU is available!"
