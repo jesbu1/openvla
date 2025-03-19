@@ -181,8 +181,8 @@ def finetune(cfg: FinetuneConfig) -> None:
     if cfg.is_resume and cfg.pretrained_checkpoint is not None:
         print(f"Resuming training from checkpoint: {cfg.pretrained_checkpoint}")
         if cfg.use_lora:
-            # For LoRA, we need to load from adapter-tmp directory
-            adapter_dir = cfg.adapter_tmp_dir / cfg.pretrained_checkpoint.name
+            # Use the full path name to handle spaces in the path
+            adapter_dir = cfg.adapter_tmp_dir / cfg.pretrained_checkpoint.parts[-1]
             if not adapter_dir.exists():
                 raise ValueError(f"Could not find adapter directory at {adapter_dir}")
             print(f"Loading LoRA adapter from: {adapter_dir}")
@@ -204,8 +204,8 @@ def finetune(cfg: FinetuneConfig) -> None:
         vla = get_peft_model(vla, lora_config)
         vla.print_trainable_parameters()
 
-    # Wrap VLA in PyTorch DDP Wrapper for Multi-GPU Training
-    vla = DDP(vla, device_ids=[device_id], find_unused_parameters=True, gradient_as_bucket_view=True)
+    # Wrap model with DDP for distributed training
+    vla = DDP(vla, device_ids=[device_id], output_device=device_id)
 
     # Create Optimizer =>> note that we default to a simple constant learning rate!
     trainable_params = [param for param in vla.parameters() if param.requires_grad]
