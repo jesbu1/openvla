@@ -49,7 +49,25 @@ mv /home/$USER/tensorflow_datasets/liber_o90 /home/$USER/LIBERO/libero/datasets/
 Finally, to finetune on the LIBERO_90 dataset, run the following command:
 ```bash
 NCCL_P2P_LEVEL=NVL torchrun --standalone --nnodes=1 --nproc-per-node 1 vla-scripts/finetune_libero_90.py
-``` 
+```
+
+To resume training from a checkpoint, use the following command:
+```bash
+NCCL_P2P_LEVEL=NVL torchrun --standalone --nnodes=1 --nproc-per-node 1 vla-scripts/finetune_libero_90.py \
+    --pretrained_checkpoint <PATH_TO_CHECKPOINT> \
+    --is_resume True \
+    --resume_step <STEP_TO_RESUME_FROM> \
+    --resume_epoch <EPOCH_TO_RESUME_FROM>
+```
+
+For example, to resume from a checkpoint at step 5000 and epoch 1:
+```bash
+NCCL_P2P_LEVEL=NVL torchrun --standalone --nnodes=1 --nproc-per-node 1 vla-scripts/finetune_libero_90.py \
+    --pretrained_checkpoint runs/checkpoints/step-5000-epoch-1.pt \
+    --is_resume True \
+    --resume_step 5000 \
+    --resume_epoch 1
+```
 
 Done!
 

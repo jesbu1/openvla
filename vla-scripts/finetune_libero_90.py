@@ -83,6 +83,12 @@ class FinetuneConfig:
     run_root_dir: Path = Path("runs")                               # Path to directory to store logs & checkpoints
     adapter_tmp_dir: Path = Path("adapter-tmp")                     # Temporary directory for LoRA weights before fusing
 
+    # Resume Training Parameters
+    pretrained_checkpoint: Optional[Path] = None                    # Path to checkpoint to resume from
+    is_resume: bool = False                                         # Whether we are continuing a prior training run
+    resume_step: Optional[int] = None                               # Global step to resume from
+    resume_epoch: Optional[int] = None                              # Epoch to resume from
+
     # Fine-tuning Parameters
     batch_size: int = 6                                             # Fine-tuning batch size
     max_steps: int = 100_000                                        # Max number of fine-tuning steps
@@ -155,13 +161,27 @@ def finetune(cfg: FinetuneConfig) -> None:
 
     # Load OpenVLA Processor and Model using HF AutoClasses
     processor = AutoProcessor.from_pretrained(cfg.vla_path, trust_remote_code=True)
-    vla = AutoModelForVision2Seq.from_pretrained(
-        cfg.vla_path,
-        torch_dtype=torch.bfloat16,
-        quantization_config=quantization_config,
-        low_cpu_mem_usage=True,
-        trust_remote_code=True,
-    )
+
+    # Handle checkpoint loading for resume training
+    if cfg.is_resume and cfg.pretrained_checkpoint is not None:
+        print(f"Resuming training from checkpoint: {cfg.pretrained_checkpoint}")
+        # Load the base model first
+        base_vla = AutoModelForVision2Seq.from_pretrained(
+            cfg.vla_path,
+            torch_dtype=torch.bfloat16,
+            low_cpu_mem_usage=True,
+            trust_remote_code=True,
+        )
+        # Load the checkpoint
+        vla = PeftModel.from_pretrained(base_vla, cfg.pretrained_checkpoint)
+    else:
+        vla = AutoModelForVision2Seq.from_pretrained(
+            cfg.vla_path,
+            torch_dtype=torch.bfloat16,
+            quantization_config=quantization_config,
+            low_cpu_mem_usage=True,
+            trust_remote_code=True,
+        )
 
     # Device Placement =>> note that BitsAndBytes automatically handles for quantized training
     if cfg.use_quantization:
@@ -239,7 +259,12 @@ def finetune(cfg: FinetuneConfig) -> None:
 
     # Initialize Logging =>> W&B
     if distributed_state.is_main_process:
-        wandb.init(entity=cfg.wandb_entity, project=cfg.wandb_project, name=f"ft+{exp_id}")
+        wandb.init(
+            entity=cfg.wandb_entity,
+            project=cfg.wandb_project,
+            name=f"ft+{exp_id}",
+            resume="allow" if cfg.is_resume else None,
+        )
 
     # Deque to store recent train metrics (used for computing smoothened metrics for gradient accumulation)
     recent_losses = deque(maxlen=cfg.grad_accumulation_steps)
@@ -247,7 +272,7 @@ def finetune(cfg: FinetuneConfig) -> None:
     recent_l1_losses = deque(maxlen=cfg.grad_accumulation_steps)
 
     # Train!
-    with tqdm.tqdm(total=cfg.max_steps, leave=False) as progress:
+    with tqdm.tqdm(total=cfg.max_steps, initial=cfg.resume_step if cfg.is_resume else 0, leave=False) as progress:
         vla.train()
         optimizer.zero_grad()
         for batch_idx, batch in enumerate(dataloader):
