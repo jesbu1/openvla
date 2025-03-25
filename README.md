@@ -65,6 +65,37 @@ NCCL_P2P_LEVEL=NVL torchrun --standalone --nnodes=1 --nproc-per-node 1 vla-scrip
     --is_resume True
 ```
 
+Finally, to run evals:
+```bash
+# Launch LIBERO-Spatial evals
+python experiments/robot/libero/run_libero_eval.py \
+  --model_family openvla \
+  --pretrained_checkpoint 'runs/openvla-7b+libero_90_openvla_processed+b24+lr-0.0005+lora-r32+dropout-0.0--LIBERO 90 finetuning--image_aug' \
+  --task_suite_name libero_spatial \
+  --center_crop True
+
+# Launch LIBERO-Object evals
+python experiments/robot/libero/run_libero_eval.py \
+  --model_family openvla \
+  --pretrained_checkpoint 'runs/openvla-7b+libero_90_openvla_processed+b24+lr-0.0005+lora-r32+dropout-0.0--LIBERO 90 finetuning--image_aug' \
+  --task_suite_name libero_object \
+  --center_crop True
+
+# Launch LIBERO-Goal evals
+python experiments/robot/libero/run_libero_eval.py \
+  --model_family openvla \
+  --pretrained_checkpoint 'runs/openvla-7b+libero_90_openvla_processed+b24+lr-0.0005+lora-r32+dropout-0.0--LIBERO 90 finetuning--image_aug' \
+  --task_suite_name libero_goal \
+  --center_crop True
+
+# Launch LIBERO-10 (LIBERO-Long) evals
+python experiments/robot/libero/run_libero_eval.py \
+  --model_family openvla \
+  --pretrained_checkpoint 'runs/openvla-7b+libero_90_openvla_processed+b24+lr-0.0005+lora-r32+dropout-0.0--LIBERO 90 finetuning--image_aug' \
+  --task_suite_name libero_10 \
+  --center_crop True
+```
+
 Done!
 
 ## Additional Instructions
