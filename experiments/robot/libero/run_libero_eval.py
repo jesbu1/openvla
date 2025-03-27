@@ -71,6 +71,7 @@ class GenerateConfig:
     task_suite_name: str = "libero_spatial"          # Task suite. Options: libero_spatial, libero_object, libero_goal, libero_10, libero_90
     num_steps_wait: int = 10                         # Number of steps to wait for objects to stabilize in sim
     num_trials_per_task: int = 50                    # Number of rollouts per task
+    max_wandb_videos_per_task: int = 2               # Maximum number of success/failure videos to log to wandb per task
 
     #################################################################################################################
     # Utils
@@ -147,9 +148,19 @@ def eval_libero(cfg: GenerateConfig) -> None:
 
     # Start evaluation
     total_episodes, total_successes = 0, 0
+    # Track wandb video counts per task
+    task_wandb_video_counts = {}  # Dictionary to track success/failure video counts per task for wandb
+    
     for task_id in tqdm.tqdm(range(num_tasks_in_suite)):
         # Get task
         task = task_suite.get_task(task_id)
+        task_description = task.description
+
+        # Initialize wandb video tracking for this task
+        task_wandb_video_counts[task_description] = {
+            'success': 0,
+            'failure': 0
+        }
 
         # Get default LIBERO initial states
         initial_states = task_suite.get_task_init_states(task_id)
@@ -244,8 +255,29 @@ def eval_libero(cfg: GenerateConfig) -> None:
 
             # Save a replay video of the episode
             save_rollout_video(
-                replay_images, total_episodes, success=done, task_description=task_description, log_file=log_file
+                replay_images, 
+                total_episodes, 
+                success=done, 
+                task_description=task_description, 
+                log_file=log_file
             )
+
+            # Log video to wandb if we haven't reached the limit for this task
+            if cfg.use_wandb:
+                should_log_to_wandb = False
+                if done and task_wandb_video_counts[task_description]['success'] < cfg.max_wandb_videos_per_task:
+                    should_log_to_wandb = True
+                    task_wandb_video_counts[task_description]['success'] += 1
+                elif not done and task_wandb_video_counts[task_description]['failure'] < cfg.max_wandb_videos_per_task:
+                    should_log_to_wandb = True
+                    task_wandb_video_counts[task_description]['failure'] += 1
+
+                if should_log_to_wandb:
+                    # Convert images to video and log to wandb
+                    video_path = os.path.join(cfg.local_log_dir, f"rollout_{total_episodes}.mp4")
+                    wandb.log({
+                        f"videos/{task_description}/{'success' if done else 'failure'}_{task_wandb_video_counts[task_description]['success' if done else 'failure']}": wandb.Video(video_path)
+                    })
 
             # Log current results
             print(f"Success: {done}")
