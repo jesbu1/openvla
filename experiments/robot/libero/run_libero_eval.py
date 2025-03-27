@@ -154,7 +154,7 @@ def eval_libero(cfg: GenerateConfig) -> None:
     for task_id in tqdm.tqdm(range(num_tasks_in_suite)):
         # Get task
         task = task_suite.get_task(task_id)
-        task_description = task.description
+        task_description = task.language
 
         # Initialize wandb video tracking for this task
         task_wandb_video_counts[task_description] = {
@@ -254,7 +254,7 @@ def eval_libero(cfg: GenerateConfig) -> None:
             total_episodes += 1
 
             # Save a replay video of the episode
-            save_rollout_video(
+            mp4_path =save_rollout_video(
                 replay_images, 
                 total_episodes, 
                 success=done, 
@@ -274,9 +274,8 @@ def eval_libero(cfg: GenerateConfig) -> None:
 
                 if should_log_to_wandb:
                     # Convert images to video and log to wandb
-                    video_path = os.path.join(cfg.local_log_dir, f"rollout_{total_episodes}.mp4")
                     wandb.log({
-                        f"videos/{task_description}/{'success' if done else 'failure'}_{task_wandb_video_counts[task_description]['success' if done else 'failure']}": wandb.Video(video_path)
+                        f"videos/{task_description}/{'success' if done else 'failure'}_{task_wandb_video_counts[task_description]['success' if done else 'failure']}": wandb.Video(mp4_path)
                     })
 
             # Log current results
