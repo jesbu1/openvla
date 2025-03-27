@@ -73,6 +73,7 @@ python experiments/robot/libero/run_libero_eval.py \
   --pretrained_checkpoint 'runs/openvla-7b+libero_90_openvla_processed+b24+lr-0.0005+lora-r32+dropout-0.0--LIBERO 90 finetuning--image_aug' \
   --task_suite_name libero_spatial \
   --center_crop True
+  --use_wandb True 
 
 # Launch LIBERO-Object evals
 python experiments/robot/libero/run_libero_eval.py \
@@ -80,6 +81,7 @@ python experiments/robot/libero/run_libero_eval.py \
   --pretrained_checkpoint 'runs/openvla-7b+libero_90_openvla_processed+b24+lr-0.0005+lora-r32+dropout-0.0--LIBERO 90 finetuning--image_aug' \
   --task_suite_name libero_object \
   --center_crop True
+  --use_wandb True 
 
 # Launch LIBERO-Goal evals
 python experiments/robot/libero/run_libero_eval.py \
@@ -87,6 +89,7 @@ python experiments/robot/libero/run_libero_eval.py \
   --pretrained_checkpoint 'runs/openvla-7b+libero_90_openvla_processed+b24+lr-0.0005+lora-r32+dropout-0.0--LIBERO 90 finetuning--image_aug' \
   --task_suite_name libero_goal \
   --center_crop True
+  --use_wandb True 
 
 # Launch LIBERO-10 (LIBERO-Long) evals
 python experiments/robot/libero/run_libero_eval.py \
@@ -94,6 +97,15 @@ python experiments/robot/libero/run_libero_eval.py \
   --pretrained_checkpoint 'runs/openvla-7b+libero_90_openvla_processed+b24+lr-0.0005+lora-r32+dropout-0.0--LIBERO 90 finetuning--image_aug' \
   --task_suite_name libero_10 \
   --center_crop True
+  --use_wandb True 
+
+# Launch LIBERO-90 evals
+python experiments/robot/libero/run_libero_eval.py \
+  --model_family openvla \
+  --pretrained_checkpoint 'runs/openvla-7b+libero_90_openvla_processed+b24+lr-0.0005+lora-r32+dropout-0.0--LIBERO 90 finetuning--image_aug' \
+  --task_suite_name libero_90 \
+  --center_crop True
+  --use_wandb True 
 ```
 
 Done!
@@ -684,6 +696,7 @@ python experiments/robot/libero/run_libero_eval.py \
   --pretrained_checkpoint openvla/openvla-7b-finetuned-libero-10 \
   --task_suite_name libero_10 \
   --center_crop True
+
 ```
 
 Notes:
