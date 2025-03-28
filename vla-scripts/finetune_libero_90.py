@@ -184,7 +184,7 @@ def finetune(cfg: FinetuneConfig) -> None:
         print(f"Resuming training from checkpoint: {cfg.pretrained_checkpoint}")
         if cfg.use_lora:
             # Use the full path name to handle spaces in the path
-            adapter_dir = cfg.adapter_tmp_dir / cfg.pretrained_checkpoint.parts[-1]
+            adapter_dir = cfg.adapter_tmp_dir / cfg.pretrained_checkpoint
             if not adapter_dir.exists():
                 raise ValueError(f"Could not find adapter directory at {adapter_dir}")
             print(f"Loading LoRA adapter from: {adapter_dir}")
