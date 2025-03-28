@@ -327,7 +327,7 @@ def finetune(cfg: FinetuneConfig) -> None:
             recent_l1_losses.append(action_l1_loss.item())
 
             # Compute gradient step index
-            gradient_step_idx = batch_idx // cfg.grad_accumulation_steps
+            gradient_step_idx = batch_idx // cfg.grad_accumulation_steps + cfg.resume_step
 
             # Compute smoothened train metrics
             #   =>> Equal to current step metrics when not using gradient accumulation
