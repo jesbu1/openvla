@@ -273,8 +273,8 @@ def finetune(cfg: FinetuneConfig) -> None:
         wandb.init(
             entity=cfg.wandb_entity,
             project=cfg.wandb_project,
-            name=f"ft+{exp_id}",
-            resume="allow" if cfg.is_resume else None,
+            # name=f"ft+{exp_id}",
+            resume=f"ft+{exp_id}",  # "allow" if cfg.is_resume else None,
         )
 
     # Deque to store recent train metrics (used for computing smoothened metrics for gradient accumulation)
