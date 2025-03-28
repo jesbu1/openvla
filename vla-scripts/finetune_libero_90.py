@@ -182,16 +182,16 @@ def finetune(cfg: FinetuneConfig) -> None:
     # If resuming training, load the checkpoint
     if cfg.is_resume and cfg.pretrained_checkpoint is not None:
         print(f"Resuming training from checkpoint: {cfg.pretrained_checkpoint}")
-        # if cfg.use_lora:
-        #    # Use the full path name to handle spaces in the path
-        #    adapter_dir = cfg.adapter_tmp_dir / cfg.pretrained_checkpoint.parts[-1]
-        #    if not adapter_dir.exists():
-        #        raise ValueError(f"Could not find adapter directory at {adapter_dir}")
-        #    print(f"Loading LoRA adapter from: {adapter_dir}")
-        #    vla = PeftModel.from_pretrained(vla, adapter_dir)
-        # else:
-        # For full fine-tuning, load directly from the checkpoint
-        vla = vla.from_pretrained(cfg.pretrained_checkpoint)
+        if cfg.use_lora:
+            # Use the full path name to handle spaces in the path
+            adapter_dir = cfg.adapter_tmp_dir / cfg.pretrained_checkpoint.parts[-1]
+            if not adapter_dir.exists():
+                raise ValueError(f"Could not find adapter directory at {adapter_dir}")
+            print(f"Loading LoRA adapter from: {adapter_dir}")
+            vla = PeftModel.from_pretrained(vla, adapter_dir)
+        else:
+            # For full fine-tuning, load directly from the checkpoint
+            vla = vla.from_pretrained(cfg.pretrained_checkpoint)
 
     # Device Placement =>> note that BitsAndBytes automatically handles for quantized training
     if cfg.use_quantization:
