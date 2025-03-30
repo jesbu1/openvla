@@ -87,14 +87,14 @@ class FinetuneConfig:
     # Resume Run Parameters
     pretrained_checkpoint: Optional[Path] = None                    # Path to checkpoint to resume from
     is_resume: bool = False                                         # Whether to continue a prior training run
-    resume_step: Optional[int] = 0 # Global step to resume from (auto-detected if not specified)
+    resume_step: Optional[int] = 0 # Global step to resume from 
 
     # Fine-tuning Parameters
     batch_size: int = 6                                             # Fine-tuning batch size
     max_steps: int = 200_000                                        # Max number of fine-tuning steps
     save_steps: int = 10_000                                            # Interval for checkpoint saving
     learning_rate: float = 5e-4                                     # Fine-tuning learning rate
-    grad_accumulation_steps: int = 2                                # Gradient accumulation steps
+    grad_accumulation_steps: int = 4                                # Gradient accumulation steps
     image_aug: bool = True                                          # Whether to train with image augmentations
     shuffle_buffer_size: int = 100_000                              # Dataloader shuffle buffer size (can reduce if OOM)
     save_latest_checkpoint_only: bool = True                        # Whether to save only one checkpoint per run and
@@ -112,6 +112,7 @@ class FinetuneConfig:
     wandb_project: str = "openvla"                                  # Name of W&B project to log to (use default!)
     wandb_entity: str = "clvr"                                      # Name of entity to log under
     run_id_note: Optional[str] = "LIBERO 90 finetuning"               # Extra note for logging, Weights & Biases
+    wandb_name_suffix: str = None                                          # Suffix to add to wandb run name
 
     # fmt: on
 
@@ -150,6 +151,9 @@ def finetune(cfg: FinetuneConfig) -> None:
         exp_id += f"--{cfg.run_id_note}"
     if cfg.image_aug:
         exp_id += "--image_aug"
+    exp_id += f"_{cfg.wandb_name_suffix}"
+    #from datetime import datetime
+    #exp_id += datetime.now().strftime("%Y%m%d_%H%M%S")
 
     # Start =>> Build Directories
     run_dir, adapter_dir = cfg.run_root_dir / exp_id, cfg.adapter_tmp_dir / exp_id
@@ -276,7 +280,7 @@ def finetune(cfg: FinetuneConfig) -> None:
             config=cfg,
             notes=cfg.run_id_note,
             name=f"ft+{exp_id}",
-            resume="auto",
+            resume="allow" if cfg.is_resume else "never",
         )
 
     # Deque to store recent train metrics (used for computing smoothened metrics for gradient accumulation)
