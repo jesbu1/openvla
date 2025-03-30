@@ -87,14 +87,14 @@ class FinetuneConfig:
     # Resume Run Parameters
     pretrained_checkpoint: Optional[Path] = None                    # Path to checkpoint to resume from
     is_resume: bool = False                                         # Whether to continue a prior training run
-    resume_step: Optional[int] = None                               # Global step to resume from (auto-detected if not specified)
+    resume_step: Optional[int] = 0 # Global step to resume from (auto-detected if not specified)
 
     # Fine-tuning Parameters
     batch_size: int = 6                                             # Fine-tuning batch size
-    max_steps: int = 150_000                                        # Max number of fine-tuning steps
-    save_steps: int = 5_000                                            # Interval for checkpoint saving
+    max_steps: int = 200_000                                        # Max number of fine-tuning steps
+    save_steps: int = 10_000                                            # Interval for checkpoint saving
     learning_rate: float = 5e-4                                     # Fine-tuning learning rate
-    grad_accumulation_steps: int = 4                                # Gradient accumulation steps
+    grad_accumulation_steps: int = 2                                # Gradient accumulation steps
     image_aug: bool = True                                          # Whether to train with image augmentations
     shuffle_buffer_size: int = 100_000                              # Dataloader shuffle buffer size (can reduce if OOM)
     save_latest_checkpoint_only: bool = True                        # Whether to save only one checkpoint per run and
