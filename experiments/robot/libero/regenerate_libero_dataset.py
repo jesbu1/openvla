@@ -89,13 +89,14 @@ def main(args):
     benchmark_dict = benchmark.get_benchmark_dict()
     task_suite = benchmark_dict[args.libero_task_suite]()
     num_tasks_in_suite = task_suite.n_tasks
+    num_tasks_to_skip = args.skip_n_tasks
 
     # Setup
     num_replays = 0
     num_success = 0
     num_noops = 0
 
-    for task_id in tqdm.tqdm(range(num_tasks_in_suite)):
+    for task_id in tqdm.tqdm(range(num_tasks_to_skip, num_tasks_in_suite)):
         # Get task in suite
         task = task_suite.get_task(task_id)
         env, task_description = get_libero_env(task, "llava", resolution=IMAGE_RESOLUTION)
@@ -243,6 +244,8 @@ if __name__ == "__main__":
                         help="Path to directory containing raw HDF5 dataset. Example: ./LIBERO/libero/datasets/libero_spatial", required=True)
     parser.add_argument("--libero_target_dir", type=str,
                         help="Path to regenerated dataset directory. Example: ./LIBERO/libero/datasets/libero_spatial_no_noops", required=True)
+    parser.add_argument("--skip_n_tasks", type=int,
+                        help="How many tasks to skip if so", default=0)
     args = parser.parse_args()
 
     # Start data regeneration
