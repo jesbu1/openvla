@@ -198,6 +198,16 @@ def main(args):
                 ep_data_grp.create_dataset("rewards", data=rewards)
                 ep_data_grp.create_dataset("dones", data=dones)
 
+                # Copy the original demo attributes to the new demo
+                for key, value in demo_data.attrs.items():
+                    ep_data_grp.attrs[key] = value
+
+                # Copy attributes for each dataset inside the demo
+                for dataset_name in demo_data.keys():
+                    if dataset_name in ep_data_grp and hasattr(demo_data[dataset_name], "attrs"):
+                        for key, value in demo_data[dataset_name].attrs.items():
+                            ep_data_grp[dataset_name].attrs[key] = value
+
                 num_success += 1
 
             num_replays += 1
@@ -229,6 +239,20 @@ def main(args):
         orig_data_file.close()
         new_data_file.close()
         print(f"Saved regenerated demos for task '{task_description}' at: {new_data_path}")
+
+    # Copy the top-level attributes from original data to new data
+    with h5py.File(os.path.join(args.libero_raw_data_dir, f"{task_suite.get_task(0).name}_demo.hdf5"), "r") as src_file:
+        with h5py.File(
+            os.path.join(args.libero_target_dir, f"{task_suite.get_task(0).name}_demo.hdf5"), "a"
+        ) as dst_file:
+            # Copy file-level attributes
+            for key, value in src_file.attrs.items():
+                dst_file.attrs[key] = value
+
+            # Copy data group attributes
+            if "data" in src_file and "data" in dst_file:
+                for key, value in src_file["data"].attrs.items():
+                    dst_file["data"].attrs[key] = value
 
     print(f"Dataset regeneration complete! Saved new dataset at: {args.libero_target_dir}")
     print(f"Saved metainfo JSON at: {metainfo_json_out_path}")
