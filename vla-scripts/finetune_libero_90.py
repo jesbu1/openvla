@@ -87,12 +87,12 @@ class FinetuneConfig:
     # Resume Run Parameters
     pretrained_checkpoint: Optional[Path] = None                    # Path to checkpoint to resume from
     is_resume: bool = False                                         # Whether to continue a prior training run
-    resume_step: Optional[int] = None                               # Global step to resume from (auto-detected if not specified)
+    resume_step: Optional[int] = 0 # Global step to resume from 
 
     # Fine-tuning Parameters
     batch_size: int = 6                                             # Fine-tuning batch size
-    max_steps: int = 100_000                                        # Max number of fine-tuning steps
-    save_steps: int = 5_000                                            # Interval for checkpoint saving
+    max_steps: int = 200_000                                        # Max number of fine-tuning steps
+    save_steps: int = 10_000                                            # Interval for checkpoint saving
     learning_rate: float = 5e-4                                     # Fine-tuning learning rate
     grad_accumulation_steps: int = 4                                # Gradient accumulation steps
     image_aug: bool = True                                          # Whether to train with image augmentations
@@ -112,6 +112,7 @@ class FinetuneConfig:
     wandb_project: str = "openvla"                                  # Name of W&B project to log to (use default!)
     wandb_entity: str = "clvr"                                      # Name of entity to log under
     run_id_note: Optional[str] = "LIBERO 90 finetuning"               # Extra note for logging, Weights & Biases
+    wandb_name_suffix: str = None                                          # Suffix to add to wandb run name
 
     # fmt: on
 
@@ -150,6 +151,9 @@ def finetune(cfg: FinetuneConfig) -> None:
         exp_id += f"--{cfg.run_id_note}"
     if cfg.image_aug:
         exp_id += "--image_aug"
+    exp_id += f"_{cfg.wandb_name_suffix}"
+    #from datetime import datetime
+    #exp_id += datetime.now().strftime("%Y%m%d_%H%M%S")
 
     # Start =>> Build Directories
     run_dir, adapter_dir = cfg.run_root_dir / exp_id, cfg.adapter_tmp_dir / exp_id
@@ -180,15 +184,15 @@ def finetune(cfg: FinetuneConfig) -> None:
     )
 
     # If resuming training, load the checkpoint
-    if cfg.is_resume and cfg.pretrained_checkpoint is not None:
+    if cfg.is_resume:
         print(f"Resuming training from checkpoint: {cfg.pretrained_checkpoint}")
         if cfg.use_lora:
             # Use the full path name to handle spaces in the path
-            adapter_dir = cfg.adapter_tmp_dir / cfg.pretrained_checkpoint.parts[-1]
+            adapter_dir = cfg.adapter_tmp_dir / exp_id 
             if not adapter_dir.exists():
                 raise ValueError(f"Could not find adapter directory at {adapter_dir}")
             print(f"Loading LoRA adapter from: {adapter_dir}")
-            vla = PeftModel.from_pretrained(vla, adapter_dir)
+            vla = PeftModel.from_pretrained(vla, adapter_dir, is_trainable=True)
         else:
             # For full fine-tuning, load directly from the checkpoint
             vla = vla.from_pretrained(cfg.pretrained_checkpoint)
@@ -273,8 +277,10 @@ def finetune(cfg: FinetuneConfig) -> None:
         wandb.init(
             entity=cfg.wandb_entity,
             project=cfg.wandb_project,
+            config=cfg,
+            notes=cfg.run_id_note,
             name=f"ft+{exp_id}",
-            resume="allow" if cfg.is_resume else None,
+            resume="allow" if cfg.is_resume else "never",
         )
 
     # Deque to store recent train metrics (used for computing smoothened metrics for gradient accumulation)
@@ -327,7 +333,7 @@ def finetune(cfg: FinetuneConfig) -> None:
             recent_l1_losses.append(action_l1_loss.item())
 
             # Compute gradient step index
-            gradient_step_idx = batch_idx // cfg.grad_accumulation_steps
+            gradient_step_idx = batch_idx // cfg.grad_accumulation_steps + cfg.resume_step
 
             # Compute smoothened train metrics
             #   =>> Equal to current step metrics when not using gradient accumulation
