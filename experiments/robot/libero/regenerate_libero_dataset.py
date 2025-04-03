@@ -241,19 +241,17 @@ def main(args):
         new_data_file.close()
         print(f"Saved regenerated demos for task '{task_description}' at: {new_data_path}")
 
-    # Copy the top-level attributes from original data to new data
-    with h5py.File(os.path.join(args.libero_raw_data_dir, f"{task_suite.get_task(0).name}_demo.hdf5"), "r") as src_file:
-        with h5py.File(
-            os.path.join(args.libero_target_dir, f"{task_suite.get_task(0).name}_demo.hdf5"), "a"
-        ) as dst_file:
-            # Copy file-level attributes
-            for key, value in src_file.attrs.items():
-                dst_file.attrs[key] = value
+        # Copy file-level attributes for the current task file
+        with h5py.File(orig_data_path, "r") as src_file:
+            with h5py.File(new_data_path, "a") as dst_file:
+                # Copy file-level attributes
+                for key, value in src_file.attrs.items():
+                    dst_file.attrs[key] = value
 
-            # Copy data group attributes
-            if "data" in src_file and "data" in dst_file:
-                for key, value in src_file["data"].attrs.items():
-                    dst_file["data"].attrs[key] = value
+                # Copy data group attributes
+                if "data" in src_file and "data" in dst_file:
+                    for key, value in src_file["data"].attrs.items():
+                        dst_file["data"].attrs[key] = value
 
     print(f"Dataset regeneration complete! Saved new dataset at: {args.libero_target_dir}")
     print(f"Saved metainfo JSON at: {metainfo_json_out_path}")
